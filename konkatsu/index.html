@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>婚活戦闘力診断アプリ</title>
-<meta name="description" content="年齢・容姿・年収・学歴・身長から婚活戦闘力をスコア化するオリジナル診断（エンタメ用）">
+<meta name="theme-color" content="#e0457b">
+<title>婚活パワー診断</title>
+<meta name="description" content="年齢・容姿・年収・学歴・身長から婚活パワーをスコア化するオリジナル診断（エンタメ用）">
 <style>
   :root {
     --bg: #fff7f9;
@@ -19,7 +20,7 @@
     --warn: #d9822b;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #1b1620;
       --card: #262030;
       --text: #f2ecf5;
@@ -31,6 +32,18 @@
       --good: #4cc78f;
       --warn: #f0a050;
     }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1620;
+    --card: #262030;
+    --text: #f2ecf5;
+    --muted: #a99db1;
+    --accent: #ff6f9f;
+    --accent-soft: #3a2433;
+    --border: #3a3144;
+    --bar-bg: #342b3e;
+    --good: #4cc78f;
+    --warn: #f0a050;
   }
   * { box-sizing: border-box; }
   body {
@@ -105,8 +118,8 @@
 </head>
 <body>
 <main>
-  <h1>婚活戦闘力診断アプリ</h1>
-  <p class="lead">5つの項目を選ぶだけで、あなたの婚活戦闘力（30点満点）と<br>マッチしやすいお相手の目安がわかります</p>
+  <h1>婚活パワー診断</h1>
+  <p class="lead">5つの項目を選ぶだけで、あなたの婚活パワー（30点満点）と<br>マッチしやすいお相手の目安がわかります</p>
 
   <form id="form" class="card" novalidate>
     <div class="field">
@@ -145,14 +158,14 @@
 
   <section id="result" aria-live="polite">
     <div class="card score-box">
-      <div class="score-label">あなたの婚活戦闘力</div>
+      <div class="score-label">あなたの婚活パワー</div>
       <div class="score"><span id="r-score">0</span><small> / 30</small></div>
       <div class="rank" id="r-rank">-</div>
       <p class="rank-title" id="r-rank-title"></p>
     </div>
 
     <div class="card">
-      <h2>マッチしやすいお相手の戦闘力</h2>
+      <h2>マッチしやすいお相手の婚活パワー</h2>
       <div class="band" id="r-band"></div>
       <p class="note">自分の点数 ±3点の相手は、お互いに「釣り合う」と感じやすい範囲です。これより上を狙うと断られやすく、下だと自分が物足りなく感じやすくなります。</p>
     </div>
@@ -169,7 +182,7 @@
     </div>
 
     <div class="card">
-      <h2>戦闘力アップのアドバイス</h2>
+      <h2>婚活パワーアップのアドバイス</h2>
       <ul class="advice" id="r-advice"></ul>
     </div>
 
@@ -189,7 +202,7 @@ const OPTIONS = {
       ["20〜24歳", 4], ["25〜29歳", 6], ["30〜34歳", 5], ["35〜39歳", 3],
       ["40〜44歳", 2], ["45〜49歳", 1], ["50歳以上", 0]
     ],
-    // 女性は若いほど戦闘力が高くなる配点
+    // 女性は若いほど婚活パワーが高くなる配点
     female: [
       ["20〜24歳", 9], ["25〜27歳", 8], ["28〜29歳", 7], ["30〜32歳", 5],
       ["33〜34歳", 4], ["35〜37歳", 3], ["38〜39歳", 2], ["40〜44歳", 1], ["45歳以上", 0]
@@ -284,7 +297,7 @@ const ADVICE = {
 const RANK_ADVICE = {
   SS: "条件面は申し分なし。だからこそ「条件」より「価値観・相性」を重視すると、満足度の高い結婚につながります。",
   S: "高めの相手も十分狙えます。申し込みが多く集まる分、相手を見極める目を大切にしましょう。",
-  A: "バランスの良い戦闘力です。弱い項目を1つ伸ばせばSランクも見えてきます。",
+  A: "バランスの良い婚活パワーです。弱い項目を1つ伸ばせばSランクも見えてきます。",
   B: "平均以上の安定タイプ。高望みしすぎず、±3点の範囲を中心に活動すると成婚が近づきます。",
   C: "伸びしろが大きいタイプ。見た目の清潔感とプロフィール写真の改善だけでも点数アップが期待できます。",
   D: "今は条件面より「人柄」で勝負する時期。誠実さや優しさが伝わるプロフィール作りと、出会いの数を増やすことに注力しましょう。"
@@ -367,7 +380,7 @@ function render(gender, result) {
   $("r-advice").innerHTML = lis.join("");
 
   $("copy").dataset.text =
-    `【婚活戦闘力診断】\n戦闘力：${score}/30（${rank.rank}ランク：${rank.title}）\n` +
+    `【婚活パワー診断】\n婚活パワー：${score}/30（${rank.rank}ランク：${rank.title}）\n` +
     `マッチしやすい相手：${low}〜${high}点\n狙えるお相手：${rank.partner[gender]}`;
 
   $("result").style.display = "block";
