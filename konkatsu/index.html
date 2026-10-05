@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>婚活戦闘力診断アプリ</title>
+<meta name="description" content="年齢・容姿・年収・学歴・身長から婚活戦闘力をスコア化するオリジナル診断（エンタメ用）">
+<style>
+  :root {
+    --bg: #fff7f9;
+    --card: #ffffff;
+    --text: #2b2230;
+    --muted: #776c7d;
+    --accent: #e0457b;
+    --accent-soft: #fde3ec;
+    --border: #eedbe3;
+    --bar-bg: #f3e8ed;
+    --good: #2f9e6e;
+    --warn: #d9822b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1620;
+      --card: #262030;
+      --text: #f2ecf5;
+      --muted: #a99db1;
+      --accent: #ff6f9f;
+      --accent-soft: #3a2433;
+      --border: #3a3144;
+      --bar-bg: #342b3e;
+      --good: #4cc78f;
+      --warn: #f0a050;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+    line-height: 1.7;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; text-align: center; }
+  .lead { text-align: center; color: var(--muted); margin: 0 0 24px; font-size: .92rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+  .field { margin-bottom: 16px; }
+  .field:last-of-type { margin-bottom: 0; }
+  label { display: block; font-weight: 700; margin-bottom: 6px; }
+  .hint { font-weight: 400; color: var(--muted); font-size: .8rem; margin-left: 4px; }
+  select {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+  }
+  select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn {
+    display: block; width: 100%;
+    font-size: 1.1rem; font-weight: 700;
+    padding: 14px; border: 0; border-radius: 999px;
+    background: var(--accent); color: #fff; cursor: pointer;
+  }
+  .btn.secondary { background: transparent; color: var(--accent); border: 2px solid var(--accent); margin-top: 12px; }
+  .error { color: var(--accent); font-size: .9rem; margin: 10px 0 0; min-height: 1em; text-align: center; }
+  #result { display: none; }
+  .score-box { text-align: center; }
+  .score-label { color: var(--muted); font-size: .9rem; }
+  .score { font-size: 4rem; font-weight: 800; line-height: 1.1; color: var(--accent); }
+  .score small { font-size: 1.2rem; color: var(--muted); font-weight: 600; }
+  .rank {
+    display: inline-block; margin-top: 8px;
+    padding: 4px 18px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: 800; font-size: 1.2rem;
+  }
+  .rank-title { margin: 8px 0 0; font-weight: 700; }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; border-left: 4px solid var(--accent); padding-left: 8px; }
+  .band { text-align: center; font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+  .note { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
+  .bar-row { margin-bottom: 10px; }
+  .bar-head { display: flex; justify-content: space-between; font-size: .9rem; }
+  .bar { height: 10px; background: var(--bar-bg); border-radius: 999px; overflow: hidden; margin-top: 4px; }
+  .bar span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+  .celeb { font-size: 1.05rem; font-weight: 700; margin: 0 0 6px; }
+  ul.advice { margin: 0; padding-left: 1.2em; }
+  ul.advice li { margin-bottom: 10px; }
+  ul.advice b { color: var(--accent); }
+  .disclaimer { color: var(--muted); font-size: .75rem; text-align: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>婚活戦闘力診断アプリ</h1>
+  <p class="lead">5つの項目を選ぶだけで、あなたの婚活戦闘力（30点満点）と<br>マッチしやすいお相手の目安がわかります</p>
+
+  <form id="form" class="card" novalidate>
+    <div class="field">
+      <label for="gender">性別</label>
+      <select id="gender" required>
+        <option value="">選択してください</option>
+        <option value="male">男性</option>
+        <option value="female">女性</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="age">年齢</label>
+      <select id="age" required></select>
+    </div>
+    <div class="field">
+      <label for="looks">容姿<span class="hint">（自己評価）</span></label>
+      <select id="looks" required></select>
+    </div>
+    <div class="field">
+      <label for="income">年収<span class="hint">（税込・額面）</span></label>
+      <select id="income" required></select>
+    </div>
+    <div class="field">
+      <label for="edu">最終学歴</label>
+      <select id="edu" required></select>
+    </div>
+    <div class="field">
+      <label for="height">身長</label>
+      <select id="height" required></select>
+    </div>
+    <div style="margin-top:20px">
+      <button type="submit" class="btn">診断する</button>
+      <p class="error" id="error" role="alert"></p>
+    </div>
+  </form>
+
+  <section id="result" aria-live="polite">
+    <div class="card score-box">
+      <div class="score-label">あなたの婚活戦闘力</div>
+      <div class="score"><span id="r-score">0</span><small> / 30</small></div>
+      <div class="rank" id="r-rank">-</div>
+      <p class="rank-title" id="r-rank-title"></p>
+    </div>
+
+    <div class="card">
+      <h2>マッチしやすいお相手の戦闘力</h2>
+      <div class="band" id="r-band"></div>
+      <p class="note">自分の点数 ±3点の相手は、お互いに「釣り合う」と感じやすい範囲です。これより上を狙うと断られやすく、下だと自分が物足りなく感じやすくなります。</p>
+    </div>
+
+    <div class="card">
+      <h2>項目別の内訳</h2>
+      <div id="r-bars"></div>
+    </div>
+
+    <div class="card">
+      <h2>芸能人でいうと、こんなお相手なら狙える！</h2>
+      <p class="celeb" id="r-celeb"></p>
+      <p class="note" id="r-celeb-note"></p>
+    </div>
+
+    <div class="card">
+      <h2>戦闘力アップのアドバイス</h2>
+      <ul class="advice" id="r-advice"></ul>
+    </div>
+
+    <button class="btn" id="copy">結果をコピーする</button>
+    <button class="btn secondary" id="retry">もう一度診断する</button>
+  </section>
+
+  <p class="disclaimer">※本アプリはエンタメ目的のオリジナル診断です。点数は独自の目安であり、人の価値を決めるものではありません。<br>入力内容はどこにも送信・保存されません。</p>
+</main>
+
+<script>
+// ===== 配点表（男女別） =====
+// [選択肢の表示名, 点数]
+const OPTIONS = {
+  age: {
+    male: [
+      ["20〜24歳", 4], ["25〜29歳", 6], ["30〜34歳", 5], ["35〜39歳", 3],
+      ["40〜44歳", 2], ["45〜49歳", 1], ["50歳以上", 0]
+    ],
+    // 女性は若いほど戦闘力が高くなる配点
+    female: [
+      ["20〜24歳", 9], ["25〜27歳", 8], ["28〜29歳", 7], ["30〜32歳", 5],
+      ["33〜34歳", 4], ["35〜37歳", 3], ["38〜39歳", 2], ["40〜44歳", 1], ["45歳以上", 0]
+    ]
+  },
+  looks: {
+    male: [
+      ["自信がない", 0], ["やや自信がない", 1], ["普通", 3],
+      ["まあまあ良い方", 4], ["よく褒められる", 5], ["芸能人レベルと言われる", 6]
+    ],
+    female: [
+      ["自信がない", 0], ["やや自信がない", 2], ["普通", 4],
+      ["まあまあ良い方", 6], ["よく褒められる", 7], ["芸能人レベルと言われる", 8]
+    ]
+  },
+  income: {
+    male: [
+      ["300万円未満", 0], ["300〜399万円", 2], ["400〜499万円", 4], ["500〜599万円", 5],
+      ["600〜799万円", 6], ["800〜999万円", 7], ["1000万円以上", 8]
+    ],
+    female: [
+      ["200万円未満", 0], ["200〜399万円", 1], ["400〜599万円", 2], ["600万円以上", 3]
+    ]
+  },
+  edu: {
+    male: [
+      ["中学・高校卒", 0], ["専門・短大・高専卒", 1], ["大学卒", 2],
+      ["難関大卒（MARCH・関関同立・地方国立など）", 3], ["最難関大卒（旧帝大・早慶・医学部など）", 4]
+    ],
+    female: [
+      ["中学・高校卒", 0], ["専門・短大・高専卒", 1], ["大学卒", 2],
+      ["難関大卒（MARCH・関関同立・地方国立など）", 3], ["最難関大卒（旧帝大・早慶・医学部など）", 3]
+    ]
+  },
+  height: {
+    male: [
+      ["160cm未満", 0], ["160〜164cm", 1], ["165〜169cm", 2],
+      ["170〜174cm", 3], ["175〜179cm", 4], ["180cm以上", 5]
+    ],
+    female: [
+      ["150cm未満", 1], ["150〜154cm", 2], ["155〜164cm", 3],
+      ["165〜169cm", 3], ["170cm以上", 2]
+    ]
+  }
+};
+
+const LABELS = { age: "年齢", looks: "容姿", income: "年収", edu: "学歴", height: "身長" };
+const KEYS = Object.keys(LABELS);
+const MAX_SCORE = 30;
+
+// ===== ランクと「芸能人でいうと」 =====
+// 実在の人物名は使わず、芸能人の「タイプ」で表現
+const RANKS = [
+  { min: 25, rank: "SS", title: "婚活界の最強クラス",
+    partner: { male: "国民的女優・トップモデル級（CM女王タイプ）", female: "国民的イケメン俳優・トップアスリート級" } },
+  { min: 21, rank: "S", title: "誰もが一目置くハイスペック",
+    partner: { male: "人気ドラマのヒロイン女優・人気女子アナタイプ", female: "月9主演クラスの人気俳優・アイドルグループのメンバータイプ" } },
+  { min: 17, rank: "A", title: "モテる実力派",
+    partner: { male: "注目の若手女優・人気モデル系タレントタイプ", female: "若手実力派俳優・人気スポーツ選手タイプ" } },
+  { min: 13, rank: "B", title: "安定感のある平均以上",
+    partner: { male: "バラエティで人気の親しみやすい女性タレント・地方局アナタイプ", female: "爽やか系アナウンサー・好感度の高いバラエティタレントタイプ" } },
+  { min: 9, rank: "C", title: "伸びしろたっぷりの挑戦者",
+    partner: { male: "癒やし系の名脇役女優・明るい女性芸人タイプ", female: "親しみやすい名脇役俳優・面白くて優しい人気芸人タイプ" } },
+  { min: 0, rank: "D", title: "これからが本番の大器晩成型",
+    partner: { male: "味のある個性派女優・家庭的な雰囲気のタレントタイプ", female: "味のある個性派俳優・誠実なベテラン芸人タイプ" } }
+];
+
+// ===== 項目別アドバイス =====
+const ADVICE = {
+  age: {
+    male: "年齢は変えられない項目。だからこそ「今日がいちばん若い日」です。お見合いの申し込み数を増やすなど、行動量で早めに勝負しましょう。",
+    female: "女性の婚活では年齢の影響が大きめ。迷っている時間がいちばんもったいないので、条件を絞りすぎず早めに出会いの数を増やしましょう。"
+  },
+  looks: {
+    male: "最も短期間で上げやすい項目です。髪型・眉・肌のケア、サイズの合った服、プロに撮ってもらうプロフィール写真で「清潔感」を作りましょう。",
+    female: "メイク・髪型・服装の見直しとプロフィール写真の撮り直しで、印象は大きく変わります。「清潔感」と「笑顔」を意識しましょう。"
+  },
+  income: {
+    male: "資格取得や転職で収入アップを狙うのも手。すぐに上げにくい場合は、貯金額や家計管理の堅実さ、仕事の将来性をアピールしましょう。",
+    female: "女性は年収の影響は小さめですが、共働きを望む男性も増えています。仕事を続ける意思や家計管理力は好印象につながります。"
+  },
+  edu: {
+    male: "学歴は変えにくいので気にしすぎなくてOK。会話の引き出し、仕事への姿勢、教養で「知的さ」を伝えましょう。",
+    female: "学歴は変えにくいので気にしすぎなくてOK。話題の広さや気配りで魅力を伝えましょう。"
+  },
+  height: {
+    male: "姿勢を正す、ジャストサイズの服を着る、少し厚底の靴を選ぶだけでも見た目の印象は変わります。プロフィール写真は全身が映るものも用意しましょう。",
+    female: "女性は身長の影響は小さめ。姿勢と服のバランス（丈感）を意識すれば十分です。"
+  }
+};
+
+const RANK_ADVICE = {
+  SS: "条件面は申し分なし。だからこそ「条件」より「価値観・相性」を重視すると、満足度の高い結婚につながります。",
+  S: "高めの相手も十分狙えます。申し込みが多く集まる分、相手を見極める目を大切にしましょう。",
+  A: "バランスの良い戦闘力です。弱い項目を1つ伸ばせばSランクも見えてきます。",
+  B: "平均以上の安定タイプ。高望みしすぎず、±3点の範囲を中心に活動すると成婚が近づきます。",
+  C: "伸びしろが大きいタイプ。見た目の清潔感とプロフィール写真の改善だけでも点数アップが期待できます。",
+  D: "今は条件面より「人柄」で勝負する時期。誠実さや優しさが伝わるプロフィール作りと、出会いの数を増やすことに注力しましょう。"
+};
+
+// ===== 画面処理 =====
+const $ = (id) => document.getElementById(id);
+
+function fillSelects(gender) {
+  KEYS.forEach((key) => {
+    const sel = $(key);
+    const prev = sel.selectedIndex;
+    sel.innerHTML = "";
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = gender ? "選択してください" : "先に性別を選んでください";
+    sel.appendChild(ph);
+    if (gender) {
+      OPTIONS[key][gender].forEach(([label], i) => {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    }
+    sel.disabled = !gender;
+    // 性別を切り替えても選択肢の数が同じ項目は選択を維持する
+    if (gender && prev > 0 && prev < sel.options.length && OPTIONS[key].male.length === OPTIONS[key].female.length) {
+      sel.selectedIndex = prev;
+    }
+  });
+}
+
+function diagnose(gender, picks) {
+  let raw = 0, max = 0;
+  const items = KEYS.map((key) => {
+    const table = OPTIONS[key][gender];
+    const [label, pt] = table[picks[key]];
+    const itemMax = Math.max(...table.map((o) => o[1]));
+    raw += pt;
+    max += itemMax;
+    return { key, label, pt, itemMax };
+  });
+  // 男女で満点が違うので30点満点に揃える
+  const score = Math.round((raw / max) * MAX_SCORE);
+  const rank = RANKS.find((r) => score >= r.min);
+  return { score, rank, items };
+}
+
+function render(gender, result) {
+  const { score, rank, items } = result;
+  $("r-score").textContent = score;
+  $("r-rank").textContent = rank.rank + "ランク";
+  $("r-rank-title").textContent = rank.title;
+
+  const low = Math.max(0, score - 3);
+  const high = Math.min(MAX_SCORE, score + 3);
+  $("r-band").textContent = `${low}点 〜 ${high}点`;
+
+  $("r-bars").innerHTML = items.map((it) => {
+    const pct = it.itemMax ? Math.round((it.pt / it.itemMax) * 100) : 0;
+    return `<div class="bar-row">
+      <div class="bar-head"><span>${LABELS[it.key]}：${it.label}</span><span>${it.pt} / ${it.itemMax}</span></div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+    </div>`;
+  }).join("");
+
+  $("r-celeb").textContent = rank.partner[gender];
+  $("r-celeb-note").textContent = "※あくまで雰囲気のたとえです。実在の特定の人物を指すものではありません。";
+
+  // 達成率が低い項目から最大3つアドバイス
+  const weak = items
+    .map((it) => ({ ...it, ratio: it.itemMax ? it.pt / it.itemMax : 1 }))
+    .filter((it) => it.ratio < 0.75)
+    .sort((a, b) => a.ratio - b.ratio)
+    .slice(0, 3);
+  const lis = [`<li><b>総合：</b>${RANK_ADVICE[rank.rank]}</li>`];
+  weak.forEach((it) => lis.push(`<li><b>${LABELS[it.key]}：</b>${ADVICE[it.key][gender]}</li>`));
+  if (weak.length === 0) lis.push("<li>全項目が高水準です。自信を持って活動しましょう！</li>");
+  $("r-advice").innerHTML = lis.join("");
+
+  $("copy").dataset.text =
+    `【婚活戦闘力診断】\n戦闘力：${score}/30（${rank.rank}ランク：${rank.title}）\n` +
+    `マッチしやすい相手：${low}〜${high}点\n狙えるお相手：${rank.partner[gender]}`;
+
+  $("result").style.display = "block";
+  $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("gender").addEventListener("change", (e) => fillSelects(e.target.value));
+
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const gender = $("gender").value;
+  const missing = ["gender", ...KEYS].filter((k) => $(k).value === "");
+  if (missing.length) {
+    const names = missing.map((k) => (k === "gender" ? "性別" : LABELS[k]));
+    $("error").textContent = `未選択の項目があります：${names.join("・")}`;
+    return;
+  }
+  $("error").textContent = "";
+  const picks = {};
+  KEYS.forEach((k) => (picks[k] = Number($(k).value)));
+  render(gender, diagnose(gender, picks));
+});
+
+$("retry").addEventListener("click", () => {
+  $("result").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+$("copy").addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  try {
+    await navigator.clipboard.writeText(btn.dataset.text || "");
+    btn.textContent = "コピーしました！";
+  } catch (_) {
+    btn.textContent = "コピーできませんでした";
+  }
+  setTimeout(() => (btn.textContent = "結果をコピーする"), 2000);
+});
+
+fillSelects("");
+</script>
+</body>
+</html>
